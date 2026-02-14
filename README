@@ -1,0 +1,75 @@
+# Bot de Sorteo WhatsApp 
+
+Bot de WhatsApp automatizado para realizar sorteos asignando un número aleatorio único a cada participante después de escribir una palabra clave.
+
+## 📋 Características
+
+- Registro automático de participantes mediante palabra clave
+- Asignación de números únicos aleatorios (1-100)
+- Validación de participación única por número de teléfono
+- Persistencia de datos con SQLite
+- Desplegable con Docker
+- Sistema de logging con Pino
+
+## 📦 Requisitos Previos
+
+- Node.js >= 18.0.0
+- npm o yarn
+
+## ⚙️ Instalación
+
+### Desarrollo Local
+
+1. Clonar el repositorio:
+```bash
+git clone <repository-url>
+cd bot_sorteo
+```
+
+2. Instalar dependencias:
+```bash
+npm install
+```
+
+3. Crear archivo `.env` en la raíz del proyecto:
+```env
+KEYWORD=sorteo
+CHANNEL_LINK=https://tu-canal-link.com
+```
+
+4. Ejecutar en modo desarrollo:
+```bash
+npm run dev
+```
+
+## 📱 Uso
+
+1. Al iniciar el bot, escanea el código QR que aparece en la consola con WhatsApp
+2. Los usuarios envían la palabra clave configurada (por defecto: "sorteo")
+3. El bot asigna automáticamente un número único y lo envía al participante
+4. Cada número de teléfono solo puede participar una vez
+
+## 📁 Estructura del Proyecto
+
+```
+bot_sorteo/
+├── src/
+│   ├── handlers/
+│   │   └── messageHandler.ts    # Manejo de mensajes
+│   ├── services/
+│   │   ├── keywordService.ts    # Validación de palabras clave
+│   │   ├── participationService.ts  # Gestión de participaciones
+│   │   └── raffleService.ts     # Generación de números
+│   ├── utils/
+│   │   └── normalizeText.ts     # Normalización de texto
+│   └── index.ts                 # Punto de entrada
+├── docker/
+│   └── dockerfile               # Configuración Docker
+├── db/                          # Base de datos SQLite
+├── data/                        # Datos de WhatsApp Web
+├── docker-compose.yml
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
