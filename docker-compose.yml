@@ -1,0 +1,16 @@
+services:
+  bot_sorteo:
+    build:
+      context: .
+      dockerfile: docker/dockerfile
+    container_name: bot_sorteo
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./db:/app/db
+    environment:
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
+    ports:
+      - "3001:3000"
