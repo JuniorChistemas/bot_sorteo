@@ -64,3 +64,8 @@ export function generateUniqueNumber(): number {
 
   return number;
 }
+
+// fuction to get all the participants from the database
+export function getParticipants() {
+  return db.prepare('SELECT * FROM participation').all();
+}

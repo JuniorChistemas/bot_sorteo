@@ -1,19 +1,43 @@
-import { Message } from 'whatsapp-web.js';
+import { Message, MessageMedia } from 'whatsapp-web.js';
 import { normalizeText } from '../utils/normalizeText';
 import { isValidKeyword } from '../services/keywordService';
 import {
   hasParticipated,
   registerParticipation,
   generateUniqueNumber,
+  getParticipants,
 } from '../services/participationService';
 import { isSpamming, clearAttempts } from '../services/antiSpamService';
 import { logger } from '../utils/logger';
+import { exportData } from '../services/exportData';
 
 export async function handleMessage(message: Message) {
-  if (message.fromMe) return; // ignore messages sent by the bot itself
+  
   if (message.from.endsWith('@g.us')) return; // ignore group messages
   if (message.type !== 'chat') return; // ignore non-text messages
   if (!message.body) return; // ignore empty messages
+  // Si el mensaje es del propio bot y contiene la palabra clave de exportación
+  if (message.fromMe && message.body) {
+    const text = normalizeText(message.body);
+    const exportKeyword = process.env.KEY_EXPORT || 'datos';
+    
+    if (text === exportKeyword) {
+      const participants = getParticipants();
+      const dbPath = process.env.DATABASE_PATH || './db/participation.db';
+      const csvFilePath = dbPath.replace('participation.db', 'participantes.csv');
+      
+      exportData(participants as any[], csvFilePath);
+      logger.info('CSV exportado para administrador');
+      
+      const media = MessageMedia.fromFilePath(csvFilePath);
+      await message.reply(media, undefined, { 
+        caption: `📊 Lista de participantes\nTotal: ${participants.length}` 
+      });
+      
+      logger.info('CSV enviado al administrador');
+    }
+    return;
+  }
 
   const phoneNumber = message.from.replace('@c.us', '');
 
