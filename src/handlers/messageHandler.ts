@@ -10,9 +10,9 @@ import {
 import { isSpamming, clearAttempts } from '../services/antiSpamService';
 import { logger } from '../utils/logger';
 import { exportData } from '../services/exportData';
+import { typingDelay, mediumDelay, longDelay } from '../services/delayService';
 
 export async function handleMessage(message: Message) {
-  
   if (message.from.endsWith('@g.us')) return; // ignore group messages
   if (message.type !== 'chat') return; // ignore non-text messages
   if (!message.body) return; // ignore empty messages
@@ -20,20 +20,23 @@ export async function handleMessage(message: Message) {
   if (message.fromMe && message.body) {
     const text = normalizeText(message.body);
     const exportKeyword = process.env.KEY_EXPORT || 'datos';
-    
+
     if (text === exportKeyword) {
       const participants = getParticipants();
       const dbPath = process.env.DATABASE_PATH || './db/participation.db';
       const csvFilePath = dbPath.replace('participation.db', 'participantes.csv');
-      
+
       exportData(participants as any[], csvFilePath);
       logger.info('CSV exportado para administrador');
-      
+
+      // delay antes de enviar archivo
+      await longDelay();
+
       const media = MessageMedia.fromFilePath(csvFilePath);
-      await message.reply(media, undefined, { 
-        caption: `📊 Lista de participantes\nTotal: ${participants.length}` 
+      await message.reply(media, undefined, {
+        caption: `📊 Lista de participantes\nTotal: ${participants.length}`,
       });
-      
+
       logger.info('CSV enviado al administrador');
     }
     return;
@@ -53,8 +56,12 @@ export async function handleMessage(message: Message) {
   const chat = await message.getChat();
   await chat.sendStateTyping(); // show typing indicator while processing the message
 
+  // delay para simular que estamos escribiendo
+  await typingDelay();
+
   if (hasParticipated(phoneNumber)) {
     await chat.clearState(); // stop typing indicator if the user has already participated
+    await mediumDelay(); // delay antes de enviar la respuesta
     await message.reply('Ya has participado en el sorteo. ¡Gracias por tu interés!');
     logger.info({ phoneNumber }, 'Usuario ya participó previamente');
     return; // ignore if the user has already participated
@@ -65,7 +72,11 @@ export async function handleMessage(message: Message) {
   registerParticipation(phoneNumber, number);
   clearAttempts(phoneNumber); // limpiar intentos después de registro exitoso
 
+  // delay adicional antes de confirmar (mensaje más largo)
+  await typingDelay(2000, 5000);
+
   await chat.clearState(); // stop typing indicator after processing the message
+  await mediumDelay(); // pequeño delay antes de enviar
   await message.reply(
     `🎉 ¡Participación confirmada!\n\n` +
       `Tu número es: *${number}*\n\n` +
