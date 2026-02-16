@@ -29,6 +29,10 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
 
+# Crear directorios para datos persistentes
+RUN mkdir -p /app/data /app/db && \
+    chmod -R 777 /app/data /app/db
+
 COPY package*.json ./
 COPY tsconfig.json ./
 
